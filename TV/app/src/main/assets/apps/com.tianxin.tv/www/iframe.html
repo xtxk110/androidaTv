@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1 user-scalable=0">
+		<link href="css/iframe.css" rel="stylesheet" />
+		<script src="js/Common.js"></script>
+		<script src="js/jquery-3.3.1.min.js"></script>
+		<title></title>
+		<script>
+			var url;
+			var flag = false;
+			window.onload = function(event) {
+				var dataArr = GetInterfaceData();
+				var selectedUrl = dataArr[0];
+				url = GetQuery("rawurl", "");
+
+				$("#a1").click(function() {
+					WebviewCloseAll();
+					location.replace("index.html");
+					return false;
+				});
+				$("#a2").click(function() {;
+					var actionButtons = [];
+					for(i = 1; i <= dataArr.length; i++) {
+						actionButtons.push({
+							title: "通用接口" + i
+						});
+					}
+					var actionStyle = {
+						title: "解析接口列表",
+						cancel: "取消",
+						buttons: actionButtons
+					};
+					plus.nativeUI.actionSheet(actionStyle, function(e) {
+						if(e.index > 0)
+							selectedUrl = dataArr[e.index - 1];
+					});
+					return false;
+				});
+				$("#a3").click(function() {
+					var top = plus.webview.getTopWebview();
+					var href = top.getURL();
+					var index = href.indexOf("?url=");
+					if(index >= 0) {
+						href = href.substr(index + 1);
+						href = GetQuery("url", href);
+					}
+					//					if(!flag){//解析时,模拟成PC端,可防止移动端产生广告
+					//						SetUserAgent(false);
+					//						flag=true;
+					//					}
+					top.loadURL(selectedUrl + href);
+					return false;
+				});
+				$("#a4").click(function() {
+					var top = plus.webview.getTopWebview();
+					top.canBack(function(e) {
+						if(e.canBack) {
+							//SetUserAgent(true);
+							//flag=false;
+							top.back();
+						} else {
+							WebviewCloseAll();
+							location.replace("index.html");
+						}
+						return false;
+					});
+				});
+			};
+
+			function clearAd(view) {
+				if(typeof(AdJs) != "undefined"){					
+					view.evalJS(AdJs);
+				}
+			}
+
+			function plusready() {
+				var view = plus.webview.create(url, url, {
+					top: '8%',
+					bottom: '0px'
+				});
+				if(location.href.indexOf("#") >= 0) {
+					$("#a2,#a3").css("display", "none");		 
+				}
+				if(typeof(ClearAll)=="undefined"||!ClearAll){
+					if(location.search.indexOf("no") >= 0)
+						clearAd(view);
+				}else
+					clearAd(view);
+				view.show();
+			}
+		</script>
+	</head>
+
+	<body>
+		<div id="nav">
+			<a id="a1" href="#">首页</a>
+			<a id="a4" href="#">返回</a>
+			<a id="a2" href="#">接口</a>
+			<a id="a3" href="#">解析</a>
+		</div>
+		<script>
+			//document.write('<script src="http://www.gotopsports.com/Content/AnalyzeInterface.js?r='+Math.random()+'"></\script>');
+			$.ajax({
+				type: "get",
+				url: "http://www.gotopsports.com/Content/AnalyzeInterface.js?r=" + Math.random(),
+				async: false,
+				dataType: "script",
+				error: function() {
+					$.ajax({
+						type: "get",
+						url: "http://raw.githack.com/xtxk110/WebApp_TV/master/TV/AnalyzeInterface.js?r=" + Math.random(),
+						async: false,
+						dataType: "script"
+					});
+				}
+			});
+			if(window.plus)
+				plusready();
+			else
+				document.addEventListener("plusready", plusready, false);
+		</script>
+	</body>
+
+</html>
